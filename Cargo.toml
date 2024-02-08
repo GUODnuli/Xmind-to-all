@@ -1,0 +1,12 @@
+[package]
+name = "xmind_to_all"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+zip = "0.6.6"
+serde = { version = "1.0.193" , features = ["derive", "rc"] }
+serde_json = "1.0"
+quick-xml = "0.31.0"
