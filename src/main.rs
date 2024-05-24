@@ -27,7 +27,7 @@ enum Event {
 const APP_ID: &str = "org.gtk_rs.xmind_to_all";
 
 #[tokio::main]
-async fn main() -> glib::ExitCode {
+async fn main() {
     let(tx, mut rx) = mpsc::channel(32);
 
     // 启动事件处理任务
