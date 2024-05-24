@@ -7,8 +7,6 @@ use tokio::io::{self, AsyncBufReadExt, BufReader};
 use tokio::sync::mpsc;
 use tokio::signal;
 use zip::ZipArchive;
-use gtk::prelude::*;
-use gtk::{ glib, Application, ApplicationWindow, FileChooserAction, FileChooserButton, Orientation, Box as GtkBox, Label};
 
 mod json_to_sheet;
 use json_to_sheet::{Sheet, Topic};
@@ -31,31 +29,6 @@ const APP_ID: &str = "org.gtk_rs.xmind_to_all";
 #[tokio::main]
 async fn main() -> glib::ExitCode {
     let(tx, mut rx) = mpsc::channel(32);
-
-    let app = Application::new(Some(APP_ID), Default::default());
-
-    app.connect_activate(move |app| {
-        let window = ApplicationWindow::new(app);
-        window.set_title(Some("XMind to All"));
-        window.set_default_size(800, 600);
-
-        let vbox = GtkBox::new(Orientation::Vertical, 5);
-
-        let label = Label::new(Some("Choose a file:"));
-        vbox.append(&label);
-
-        let file_chooser_button = FileChooserButton::new(Some("Select a File"), FileChooserAction::Open);
-        vbox.append(&file_chooser_button);
-
-        file_chooser_button.connect_file_set(move |file_chooser| {
-            if let Some(file) = file_chooser.file() {
-                println!("File selected: {:?}", file);
-            }
-        });
-
-        window.set_child(Some(&vbox));
-        window.show();
-    });
 
     // 启动事件处理任务
     let event_handler = tokio::spawn(async move {
@@ -98,8 +71,6 @@ async fn main() -> glib::ExitCode {
         _ = event_handler => {},
         _ = command_handler => {},
     }
-
-    app.run()
 }
 
 async fn process_xmind() {
