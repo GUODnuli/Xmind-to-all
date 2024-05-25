@@ -7,24 +7,17 @@ use tokio::io::{self, AsyncBufReadExt, BufReader};
 use tokio::sync::mpsc;
 use tokio::signal;
 use zip::ZipArchive;
+extern crate umya_spreadsheet;
 
-mod json_to_sheet;
-use json_to_sheet::{Sheet, Topic};
-
-mod sheet_to_tree;
-use sheet_to_tree::TestTree;
-
-mod unzip;
-
-mod resolve_path;
-use resolve_path::AllPath;
+use xmind_to_all::json_to_sheet::{self, Sheet, Topic, Children, Markers};
+use xmind_to_all::sheet_to_tree::{self, TestcaseTree};
+use xmind_to_all::resolve_path:: {self, AllPath};
+use xmind_to_all::unzip;
 
 enum Event {
-    ProcessXmind,
+    ProcessXmind(PathBuf),
     Exit,
 }
-
-const APP_ID: &str = "org.gtk_rs.xmind_to_all";
 
 #[tokio::main]
 async fn main() {
@@ -34,8 +27,8 @@ async fn main() {
     let event_handler = tokio::spawn(async move {
         while let Some(event) = rx.recv().await {
             match event {
-                Event::ProcessXmind => {
-                    process_xmind().await;
+                Event::ProcessXmind(path) => {
+                    process_xmind(path.to_str().unwrap()).await;
                 },
                 Event::Exit => {
                     println!("Exiting...");
@@ -52,11 +45,17 @@ async fn main() {
         let mut lines = reader.lines();
 
         while let Some(line) = lines.next_line().await.unwrap_or(None) {
-            match line.trim() {
-                "process" => {
-                    tx_clone.send(Event::ProcessXmind).await.unwrap();
+            let mut parts = line.trim().split_whitespace();
+            match parts.next() {
+                Some("process") => {
+                    if let Some(path) = parts.next() {
+                        let path = PathBuf::from(path);
+                        tx_clone.send(Event::ProcessXmind(path)).await.unwrap();
+                    } else {
+                        println!("Missing path.");
+                    }
                 },
-                "exit" => {
+                Some("exit") => {
                     tx_clone.send(Event::Exit).await.unwrap();
                 },
                 _ => {
@@ -73,7 +72,7 @@ async fn main() {
     }
 }
 
-async fn process_xmind() {
+async fn process_xmind(xmind_file_path: &str) {
         // 初始化项目路径与input目录变量
     let project_path = env::var("CARGO_MANIFEST_DIR").unwrap();
     let input_dir_path = PathBuf::from(format!("{}/{}", project_path, "input"));
@@ -112,6 +111,8 @@ async fn process_xmind() {
     let contents = json_to_sheet::get_sheet_json(content_path).expect("获取内容时遇到无法解决的问题。");
 
     // 创建测试用例树
-    let mut testlist_tree = TestTree::new();
-    testlist_tree.create_testtree(&contents);
+    let mut testcase_tree = TestcaseTree::from(&contents);
+    testcase_tree.traverse_tree();
+
+    // tokio_fs::copy()
 }

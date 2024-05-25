@@ -11,4 +11,5 @@ serde = { version = "1.0.193" , features = ["derive", "rc"] }
 serde_json = "1.0"
 quick-xml = "0.31.0"
 tokio = { version = "1.0", features = ["full"] }
-gtk = { version = "0.8.2", package = "gtk4", features = ["v4_12", "v4_10"] }
+# gtk = { version = "0.8.2", package = "gtk4", features = ["v4_12", "v4_10"] }
+umya-spreadsheet = { version = "1.2.6", features = ["js"] }
