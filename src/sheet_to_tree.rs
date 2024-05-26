@@ -1,10 +1,12 @@
-use std::rc::Rc;
-use std::cell::RefCell;
+use std::sync::{Arc, Mutex};
 
 use serde::de::value::Error;
 
 use crate::{ Sheet, Topic };
 
+pub struct CasePath {
+    pub title: String,
+}
 pub struct TestCase {
     pub title: String,
     pub marker_id: Option<String>,
@@ -19,13 +21,14 @@ pub struct TestResult {
 }
 
 pub enum TestNode {
+    CasePath(CasePath),
     TestCase(TestCase),
     TestStep(TestStep),
     TestResult(TestResult),
 }
 
 pub struct TestcaseTree {
-    pub nodes: Vec<Rc<RefCell<TestNode>>>,
+    pub nodes: Vec<Arc<Mutex<TestNode>>>,
 }
 
 impl TestcaseTree {
@@ -34,7 +37,7 @@ impl TestcaseTree {
     }
 
     pub fn add_node(&mut self, node: TestNode) -> Result<(), Error> {
-        let rc_node = Rc::new(RefCell::new(node));
+        let rc_node = Arc::new(Mutex::new(node));
         self.nodes.push(rc_node.clone());
         Ok(())
     }
@@ -95,7 +98,8 @@ impl TestcaseTree {
 
     pub fn traverse_tree(&self) {
         for node in &self.nodes {
-            match &*node.borrow() {
+            let node = node.lock().unwrap();
+            match &*node {
                 TestNode::TestCase(case) => {
                     println!("TestCase: {} - Marker ID: {:?}", case.title, case.marker_id);
                 }

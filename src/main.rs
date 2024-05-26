@@ -7,12 +7,12 @@ use tokio::io::{self, AsyncBufReadExt, BufReader};
 use tokio::sync::mpsc;
 use tokio::signal;
 use zip::ZipArchive;
-extern crate umya_spreadsheet;
 
 use xmind_to_all::json_to_sheet::{self, Sheet, Topic, Children, Markers};
 use xmind_to_all::sheet_to_tree::{self, TestcaseTree};
 use xmind_to_all::resolve_path:: {self, AllPath};
 use xmind_to_all::unzip;
+use write_to_xlsx::write_xlsx;
 
 enum Event {
     ProcessXmind(PathBuf),
@@ -73,37 +73,28 @@ async fn main() {
 }
 
 async fn process_xmind(xmind_file_path: &str) {
-        // 初始化项目路径与input目录变量
+    // 初始化项目路径与input目录变量
     let project_path = env::var("CARGO_MANIFEST_DIR").unwrap();
     let input_dir_path = PathBuf::from(format!("{}/{}", project_path, "input"));
-
-    // 获取xmind路径：input目录下遍历到的第一个文件
-    let xmind_path = resolve_path::get_xmind_path(&input_dir_path)
-        .and_then(|mut paths| paths.into_iter().next().ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "没有找到xmind文件。")))
-        .and_then(|path| {
-            if path.extension() == Some(OsStr::new("xmind")) {
-                Ok(path)
-            } else {
-                Err(io::Error::new(io::ErrorKind::InvalidData, "找到的文件不是xmind格式。"))
-            }
-        })
-        .unwrap_or_else(|e| panic!("{}", e));
     
     // 构造解压文件路径并加入到路径结构体中
-    let zip_path = PathBuf::from(&xmind_path.with_extension("zip"));
+    // let zip_path = PathBuf::from(&xmind_path.with_extension("zip"));
+    let xmind_path = PathBuf::from(xmind_file_path);
+    let zip_path = PathBuf::from(xmind_path.with_extension("zip"));
+    let file_name = xmind_path.file_stem().unwrap().to_str().unwrap();
+    let xlsx_path = PathBuf::from(format!("{}{}", project_path, format!("/output/{}.xlsx", file_name)));
 
     // 初始化路径结构体
-    let mut path_value = AllPath::new(&project_path, input_dir_path, xmind_path, zip_path);
-    
+    let mut path_value = AllPath::new(&project_path, input_dir_path, xmind_path, zip_path, xlsx_path);
     
     // copy一份xmind为zip文件并解压，并返回content.json文件的路径
-    tokio_fs::copy(path_value.xmind_path(), path_value.zip_path()).await.expect("复制xmind为zip时遇到不可恢复的问题。");
+    tokio_fs::copy(path_value.xmind_path(), path_value.zip_path()).await.expect("复制xmind为zip时遇到无法解决的问题。");
     let mut content_path = unzip::extract_zip(path_value.zip_path())
         .unwrap_or_else(|err| {
-            panic!("zip解压时遇到无法恢复的问题。")
+            panic!("zip解压时遇到无法解决的问题。")
         });
     content_path.push("content.json");
-    tokio_fs::remove_file(path_value.zip_path()).await.expect("移除压缩包时遇到不可预期的问题。");
+    tokio_fs::remove_file(path_value.zip_path()).await.expect("移除压缩包时遇到无法解决的问题。");
     AllPath::change_content_path(&mut path_value, content_path);
 
     // 获取content.json数据
@@ -114,5 +105,7 @@ async fn process_xmind(xmind_file_path: &str) {
     let mut testcase_tree = TestcaseTree::from(&contents);
     testcase_tree.traverse_tree();
 
-    // tokio_fs::copy()
+    tokio_fs::copy(path_value.xlsx_tmp_path(), path_value.xlsx_path()).await.expect("复制xlsx模板时遇到无法解决的问题。");
+
+    write_xlsx(testcase_tree, path_value.xlsx_path().to_str().unwrap()).expect("写入xlsx时遇到无法解决的问题。");
 }

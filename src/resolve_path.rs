@@ -2,6 +2,7 @@
 use std::{ io, path::Path, path::PathBuf };
 use std::fs::{ self, File };
 
+#[derive(Debug)]
 pub struct AllPath {
     project_path: PathBuf,
     input_dir_path: PathBuf,
@@ -9,10 +10,12 @@ pub struct AllPath {
     xmind_path: PathBuf,
     zip_path: PathBuf,
     content_path: PathBuf,
+    xlsx_tmp_path: PathBuf,
+    xlsx_path: PathBuf,
 }
 
 impl AllPath {
-    pub fn new(project_path: &str, input_dir_path: PathBuf, xmind_path: PathBuf, zip_path: PathBuf) -> AllPath {
+    pub fn new(project_path: &str, input_dir_path: PathBuf, xmind_path: PathBuf, zip_path: PathBuf, xlsx_path: PathBuf) -> AllPath {
         AllPath {
             project_path: PathBuf::from(project_path),
             input_dir_path,
@@ -20,6 +23,8 @@ impl AllPath {
             xmind_path,
             zip_path,
             content_path: PathBuf::new(),
+            xlsx_tmp_path: PathBuf::from(format!("{}{}", project_path,"/tmplate/tmplate.xlsx")),
+            xlsx_path,
         }
     }
 
@@ -53,6 +58,14 @@ impl AllPath {
 
     pub fn change_content_path(&mut self, new_path: PathBuf) {
         self.content_path = new_path;
+    }
+
+    pub fn xlsx_path(&self) -> &PathBuf {
+        &self.xlsx_path
+    }
+
+    pub fn xlsx_tmp_path(&self) -> &PathBuf {
+        &self.xlsx_tmp_path
     }
 }
 
