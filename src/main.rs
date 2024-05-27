@@ -12,7 +12,7 @@ use xmind_to_all::json_to_sheet::{self, Sheet, Topic, Children, Markers};
 use xmind_to_all::sheet_to_tree::{self, TestcaseTree};
 use xmind_to_all::resolve_path:: {self, AllPath};
 use xmind_to_all::unzip;
-use write_to_xlsx::write_xlsx;
+use xmind_to_all::write_to_xlsx::{self, write_xlsx};
 
 enum Event {
     ProcessXmind(PathBuf),
@@ -103,9 +103,11 @@ async fn process_xmind(xmind_file_path: &str) {
 
     // 创建测试用例树
     let mut testcase_tree = TestcaseTree::from(&contents);
-    testcase_tree.traverse_tree();
 
+    println!("{:?}", &path_value.xlsx_tmp_path());
     tokio_fs::copy(path_value.xlsx_tmp_path(), path_value.xlsx_path()).await.expect("复制xlsx模板时遇到无法解决的问题。");
 
-    write_xlsx(testcase_tree, path_value.xlsx_path().to_str().unwrap()).expect("写入xlsx时遇到无法解决的问题。");
+    write_xlsx(testcase_tree, path_value.xlsx_path().to_str().unwrap());
+
+    println!("处理完成。");
 }

@@ -23,7 +23,7 @@ impl AllPath {
             xmind_path,
             zip_path,
             content_path: PathBuf::new(),
-            xlsx_tmp_path: PathBuf::from(format!("{}{}", project_path,"/tmplate/tmplate.xlsx")),
+            xlsx_tmp_path: PathBuf::from(format!("{}{}", project_path,"/template/template.xlsx")),
             xlsx_path,
         }
     }
