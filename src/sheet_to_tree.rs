@@ -119,7 +119,6 @@ fn get_case_hash(
     return_result: &mut Vec<HashMap<String, String>>,
     node: &TestNode,
 ) {
-    // println!("{:?}\n", node);
     if let TestNode::TestGroup(group) = node {
         let mut case_map = HashMap::new();
         case_map.insert("Path".to_string(), group.path.title.clone());
