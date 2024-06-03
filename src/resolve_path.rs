@@ -1,5 +1,5 @@
 #![allow(unused)]
-use std::{ io, path::Path, path::PathBuf };
+use std::{ io, path::Path, path::PathBuf, env };
 use std::fs::{ self, File };
 
 #[derive(Debug)]
@@ -15,15 +15,20 @@ pub struct AllPath {
 }
 
 impl AllPath {
-    pub fn new(project_path: &str, input_dir_path: PathBuf, xmind_path: PathBuf, zip_path: PathBuf, xlsx_path: PathBuf) -> AllPath {
+    pub fn new(
+        current_path: PathBuf, 
+        xmind_path: PathBuf, 
+        zip_path: PathBuf, 
+        xlsx_path: PathBuf
+    ) -> AllPath {
         AllPath {
-            project_path: PathBuf::from(project_path),
-            input_dir_path,
-            output_dir_path: PathBuf::from(format!("{}{}", project_path,"/output")),
+            project_path: current_path.clone(),
+            input_dir_path: current_path.join("input"),
+            output_dir_path: current_path.join("output"),
             xmind_path,
             zip_path,
             content_path: PathBuf::new(),
-            xlsx_tmp_path: PathBuf::from(format!("{}{}", project_path,"/template/template.xlsx")),
+            xlsx_tmp_path: current_path.join("template").join("template.xlsx"),
             xlsx_path,
         }
     }
@@ -67,7 +72,27 @@ impl AllPath {
     pub fn xlsx_tmp_path(&self) -> &PathBuf {
         &self.xlsx_tmp_path
     }
+    pub fn set_allpath(xmind_path: PathBuf) -> AllPath {
+        let out_dir = env::var("OUT_DIR").unwrap();
+        println!("OUT_DIR: {}", out_dir);
+        let project_path = env::current_dir().expect("Failed to get current directory");
+        let zip_path = PathBuf::from(xmind_path.with_extension("zip"));
+        let xlsxfile_relative_path = xmind_path.clone().with_extension("xlsx").file_name().unwrap().to_owned();
+        let xlsx_path = {
+            #[cfg(target_os = "windows")]
+            {
+                project_path.join(xlsxfile_relative_path.to_str().unwrap().replace("/", "\\"))
+            }
+
+            #[cfg(not(target_os = "windows"))]
+            {
+                project_path.join(xlsxfile_relative_path)
+            }
+        };
+        AllPath::new(project_path, xmind_path, zip_path, xlsx_path)
+    }
 }
+
 
 pub fn get_xmind_path(path: &PathBuf) -> std::io::Result<Vec<PathBuf>> {
     // 遍历input目录，取第一个路径

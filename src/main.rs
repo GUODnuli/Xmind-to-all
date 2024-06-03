@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-use std::env;
 use std::sync::{Arc, Mutex};
 use tokio::fs;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
@@ -76,19 +75,9 @@ async fn main() {
 }
 
 async fn process_xmind(xmind_file_path: &str, user_config_data:Arc<Mutex<HashMap<String, String>>>) {
-    // 初始化项目路径与input目录变量
-    let project_path = env::current_dir().expect("Failed to get current directory")
-        .to_str().unwrap().to_string();
-    let input_dir_path = PathBuf::from(format!("{}/{}", project_path, "input"));
-    
-    // 构造解压文件路径并加入到路径结构体中
-    let xmind_path = PathBuf::from(xmind_file_path);
-    let zip_path = PathBuf::from(xmind_path.with_extension("zip"));
-    let file_name = xmind_path.file_stem().unwrap().to_str().unwrap();
-    let xlsx_path = PathBuf::from(format!("{}{}", project_path, format!("/output/{}.xlsx", file_name)));
-
     // 初始化路径结构体
-    let mut path_value = AllPath::new(&project_path, input_dir_path, xmind_path, zip_path, xlsx_path);
+    let xmind_path = PathBuf::from(xmind_file_path);
+    let mut path_value = AllPath::set_allpath(xmind_path);
     
     // copy一份xmind为zip文件并解压，并返回content.json文件的路径
     fs::copy(path_value.xmind_path(), path_value.zip_path()).await
