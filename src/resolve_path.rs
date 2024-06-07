@@ -73,9 +73,8 @@ impl AllPath {
         &self.xlsx_tmp_path
     }
     pub fn set_allpath(xmind_path: PathBuf) -> AllPath {
-        let out_dir = env::var("OUT_DIR").unwrap();
-        println!("OUT_DIR: {}", out_dir);
         let project_path = env::current_dir().expect("Failed to get current directory");
+        println!("{:?}", &project_path);
         let zip_path = PathBuf::from(xmind_path.with_extension("zip"));
         let xlsxfile_relative_path = xmind_path.clone().with_extension("xlsx").file_name().unwrap().to_owned();
         let xlsx_path = {
@@ -86,7 +85,7 @@ impl AllPath {
 
             #[cfg(not(target_os = "windows"))]
             {
-                project_path.join(xlsxfile_relative_path)
+                project_path.join("output").join(xlsxfile_relative_path)
             }
         };
         AllPath::new(project_path, xmind_path, zip_path, xlsx_path)

@@ -1,13 +1,15 @@
 extern crate umya_spreadsheet;
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use crate::sheet_to_tree::TestcaseTree;
-use crate::user_config::get_user_config;
+// use crate::user_config::get_user_config;
 
-pub fn write_xlsx(testcase_tree_data: TestcaseTree, xlsx_path: &str, user_config_data: Arc<Mutex<HashMap<String, String>>>) {
-    let user_config_data = get_user_config(user_config_data);
-    let mut book = umya_spreadsheet::reader::xlsx::read(xlsx_path).unwrap();
+pub fn write_xlsx(testcase_tree_data: TestcaseTree, xlsx_path: &PathBuf, user_config_data: Arc<Mutex<HashMap<String, String>>>) {
+    let mut book = umya_spreadsheet::reader::xlsx::read(&xlsx_path).unwrap();
+    
+    let user_config_data = user_config_data.lock().unwrap().clone();
 
     let result = testcase_tree_data.get();
     let result_len = result.len();
@@ -22,7 +24,6 @@ pub fn write_xlsx(testcase_tree_data: TestcaseTree, xlsx_path: &str, user_config
             }
         }
     }
-    
 
     for (index, case) in result.iter().enumerate() {
         for data_type in [
@@ -37,9 +38,7 @@ pub fn write_xlsx(testcase_tree_data: TestcaseTree, xlsx_path: &str, user_config
         }
     }
 
-    
-
-    umya_spreadsheet::writer::xlsx::write(&book, xlsx_path).unwrap();
+    umya_spreadsheet::writer::xlsx::write(&book, &xlsx_path).unwrap();
 }
 
 fn insert_cell(

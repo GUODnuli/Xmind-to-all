@@ -82,6 +82,7 @@ async fn process_xmind(xmind_file_path: &str, user_config_data:Arc<Mutex<HashMap
     // copy一份xmind为zip文件并解压，并返回content.json文件的路径
     fs::copy(path_value.xmind_path(), path_value.zip_path()).await
         .expect("复制xmind为zip时遇到无法解决的问题。");
+
     let mut content_path = unzip::extract_zip(path_value.zip_path())
         .unwrap_or_else(|_err| {
             panic!("zip解压时遇到无法解决的问题。");
@@ -102,7 +103,8 @@ async fn process_xmind(xmind_file_path: &str, user_config_data:Arc<Mutex<HashMap
     fs::copy(path_value.xlsx_tmp_path(), path_value.xlsx_path()).await
         .expect("复制xlsx模板时遇到无法解决的问题。");
 
-    write_xlsx(testcase_tree, path_value.xlsx_path().to_str().unwrap(), user_config_data);
+    write_xlsx(testcase_tree, path_value.xlsx_path(), user_config_data);
+
 
     println!("处理完成。");
 }

@@ -14,9 +14,3 @@ tokio = { version = "1.0", features = ["full"] }
 umya-spreadsheet = { version = "1.2.6", features = ["js"] }
 toml = { version = "0.8.13" }
 once_cell = { version = "1.19.0" }
-
-[user_config]
-user_name = "庄啸森"
-case_state = "正常"
-case_type = "功能测试"
-condition = "无"

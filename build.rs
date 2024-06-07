@@ -3,6 +3,7 @@ use std::fs;
 use std::path::PathBuf;
 
 fn main() {
+    println!("=================Build.rs开始=================");
     // 获取输出目录
     let out_dir = env::var("OUT_DIR").unwrap();
     let release_dir = PathBuf::from(out_dir)
@@ -15,16 +16,19 @@ fn main() {
     let input_dir = release_dir.join("input");
     let output_dir = release_dir.join("output");
     let template_dir = release_dir.join("template");
+    let config_dir = release_dir.join("config");
 
     // 创建目录
     fs::create_dir_all(&input_dir).expect("Failed to create input directory");
     fs::create_dir_all(&output_dir).expect("Failed to create output directory");
     fs::create_dir_all(&template_dir).expect("Failed to create template directory");
+    fs::create_dir_all(&config_dir).expect("Failed to create template directory");
 
     // 定义要复制的文件
     let files_to_copy = vec![
         ("input/tmp.xmind", input_dir.join("tmp.xmind")),
         ("template/template.xlsx", template_dir.join("template.xlsx")),
+        ("config/config.toml", config_dir.join("config.toml")),
     ];
 
     // 复制文件并打印调试信息
@@ -32,4 +36,6 @@ fn main() {
         println!("Copying from {:?} to {:?}", src, dest);
         fs::copy(src, dest).expect("Failed to copy file");
     }
+    
+    println!("=================Build.rs结束=================");
 }
