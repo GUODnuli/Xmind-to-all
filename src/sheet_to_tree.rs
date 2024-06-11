@@ -84,7 +84,12 @@ impl TestcaseTree {
             };
             let case = TestCase {
                 title: topic.title.clone(),
-                marker_id: markers.first().map(|m| m.marker_id.clone()),
+                marker_id: markers.first().map(|m| match m.marker_id.as_str() {
+                    "priority-1" => "高".to_string(),
+                    "priority-2" => "中".to_string(),
+                    "priority-3" => "低".to_string(),
+                    _ => "低".to_string(),
+                }),
             };
             let step = TestStep {
                 title: topic
