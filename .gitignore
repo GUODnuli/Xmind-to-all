@@ -1,1 +1,9 @@
 /target
+
+# 忽略所有文件
+input/*
+output/*
+
+# 但不忽略特定的文件
+!input/tmp.xmind
+!output/tmp.xlsx

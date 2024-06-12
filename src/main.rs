@@ -74,7 +74,7 @@ async fn main() {
     }
 }
 
-async fn process_xmind(xmind_file_path: &str, user_config_data:Arc<Mutex<HashMap<String, String>>>) {
+async fn process_xmind(xmind_file_path: &str, user_config_data: Arc<Mutex<HashMap<String, String>>>) {
     // 初始化路径结构体
     let xmind_path = PathBuf::from(xmind_file_path);
     let mut path_value = AllPath::set_allpath(xmind_path);
@@ -98,13 +98,12 @@ async fn process_xmind(xmind_file_path: &str, user_config_data:Arc<Mutex<HashMap
         .expect("获取内容时遇到无法解决的问题。");
 
     // 创建测试用例树
-    let testcase_tree = TestcaseTree::from(&contents);
+    let testcase_tree = TestcaseTree::from(&contents, &user_config_data);
 
     fs::copy(path_value.xlsx_tmp_path(), path_value.xlsx_path()).await
         .expect("复制xlsx模板时遇到无法解决的问题。");
 
-    write_xlsx(testcase_tree, path_value.xlsx_path(), user_config_data);
-
+    write_xlsx(testcase_tree, path_value.xlsx_path(), &user_config_data);
 
     println!("处理完成。");
 }

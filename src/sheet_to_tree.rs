@@ -56,11 +56,11 @@ impl TestcaseTree {
         Ok(())
     }
 
-    pub fn from(sheet: &Sheet) -> Self {
+    pub fn from(sheet: &Sheet, user_config_data: &Arc<Mutex<HashMap<String, String>>>) -> Self {
         let mut tree = TestcaseTree::new();
         if let Some(root) = &sheet.root_topic.children {
             for topic in &root.attached {
-                tree.process_node(topic, &sheet.root_topic.title);
+                tree.process_node(topic, &sheet.root_topic.title, user_config_data);
             }
         }
         tree
@@ -77,10 +77,12 @@ impl TestcaseTree {
         return_result
     }
 
-    pub fn process_node(&mut self, topic: &Topic, parent_title: &str) {
+    pub fn process_node(&mut self, topic: &Topic, parent_title: &str, user_config_data: &Arc<Mutex<HashMap<String, String>>>) {
+        let root_title = user_config_data.lock().unwrap().get("root_title").unwrap().clone();
+        let title = format!("{}-{}", root_title, parent_title);
         if let Some(markers) = &topic.markers {
             let path = CasePath {
-                title: parent_title.to_string(),
+                title
             };
             let case = TestCase {
                 title: topic.title.clone(),
@@ -114,7 +116,7 @@ impl TestcaseTree {
         } else if let Some(children) = &topic.children {
             let current_title = format!("{}-{}", parent_title, &topic.title);
             for child in &children.attached {
-                self.process_node(child, &current_title);
+                self.process_node(child, &current_title, &user_config_data);
             }
         }
     }
