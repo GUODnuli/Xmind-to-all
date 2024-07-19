@@ -78,7 +78,7 @@ async fn process_xmind(xmind_file_path: &str, user_config_data: Arc<Mutex<HashMa
     // 初始化路径结构体
     let xmind_path = PathBuf::from(xmind_file_path);
     let mut path_value = AllPath::set_allpath(xmind_path);
-    
+
     // copy一份xmind为zip文件并解压，并返回content.json文件的路径
     fs::copy(path_value.xmind_path(), path_value.zip_path()).await
         .expect("复制xmind为zip时遇到无法解决的问题。");
@@ -90,6 +90,7 @@ async fn process_xmind(xmind_file_path: &str, user_config_data: Arc<Mutex<HashMa
     content_path.push("content.json");
     fs::remove_file(path_value.zip_path()).await
         .expect("移除压缩包时遇到无法解决的问题。");
+
     AllPath::change_content_path(&mut path_value, content_path);
 
     // 获取content.json数据
@@ -104,6 +105,12 @@ async fn process_xmind(xmind_file_path: &str, user_config_data: Arc<Mutex<HashMa
         .expect("复制xlsx模板时遇到无法解决的问题。");
 
     write_xlsx(testcase_tree, path_value.xlsx_path(), &user_config_data);
+
+    // 删除解压出来的目录
+    fs::remove_dir_all(path_value.zip_path().with_extension("")).await
+        .expect("删除解压目录时遇到无法解决的问题。");
+
+    // print!("{:?}", &path_value);
 
     println!("处理完成。");
 }

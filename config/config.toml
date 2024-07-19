@@ -1,6 +1,6 @@
 [user_config]
-user_name = "庄啸森"
-case_state = "正常"
-case_type = "功能测试"
-condition = "无"
-root_title = "航天一院-武器部-武器部630交付需求"
+user_name = "你的名字" # 填写你的名字
+case_state = "正常" # 正常或废弃
+case_type = "功能测试" # 测试用例的类型
+condition = "无" # 条件，一般不填
+root_title = "项目-次级目录-二级目录" # 重要，根据你的用例想放在哪里来决定

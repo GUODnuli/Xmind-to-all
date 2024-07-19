@@ -27,7 +27,7 @@ pub fn write_xlsx(testcase_tree_data: TestcaseTree, xlsx_path: &PathBuf, user_co
 
     for (index, case) in result.iter().enumerate() {
         for data_type in [
-            ("Path", "A"), 
+            ("Path", "A"),
             ("Title", "B"), 
             ("Step", "E"), 
             ("Result", "F"), 
