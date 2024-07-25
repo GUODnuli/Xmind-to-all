@@ -85,25 +85,34 @@ impl TestcaseTree {
                 title
             };
             let case = TestCase {
-                title: topic.title.clone(),
-                marker_id: markers.first().map(|m| match m.marker_id.as_str() {
-                    "priority-1" => "高".to_string(),
-                    "priority-2" => "中".to_string(),
-                    "priority-3" => "低".to_string(),
-                    _ => "低".to_string(),
-                }),
+            title: topic.title.clone(),
+            marker_id: markers.first().map(|m| match m.marker_id.as_str() {
+                "priority-1" => "高".to_string(),
+                "priority-2" => "中".to_string(),
+                "priority-3" => "低".to_string(),
+                _ => "低".to_string(),
+            }).or_else(|| Some("低".to_string())), // 如果没有优先级，使用默认值 "低"
             };
+
+            // 处理步骤为空
+            let step_title = topic.children.as_ref()
+                .and_then(|children| children.attached.get(0))
+                .map(|child| child.title.clone())
+                .unwrap_or_else(|| "".to_string());
             let step = TestStep {
-                title: topic
-                    .children.as_ref().unwrap()
-                    .attached.get(0).unwrap().title.clone(),
+                title: step_title
             };
+
+            // 处理结果为空
+            let result_title = topic.children.as_ref()
+                .and_then(|children| children.attached.get(0))
+                .and_then(|child| child.children.as_ref())
+                .and_then(|grandchildren| grandchildren.attached.get(0))
+                .map(|grandchild| grandchild.title.clone())
+                .unwrap_or_else(|| "".to_string()); // 如果结果为空，插入空字符串
+
             let result = TestResult {
-                title: topic
-                    .children.as_ref().unwrap()
-                    .attached.get(0).unwrap()
-                    .children.as_ref().unwrap()
-                    .attached.get(0).unwrap().title.clone(),
+                title: result_title,
             };
             let group = TestGroup {
                 path,

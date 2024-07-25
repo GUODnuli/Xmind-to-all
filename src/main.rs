@@ -1,9 +1,17 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
+use std::collections::HashMap;
+use std::io::Write;
 use tokio::fs;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
 use tokio::sync::mpsc;
-use std::collections::HashMap;
+use tokio::time::{sleep, Duration};
+use crossterm::{
+    cursor::{Hide, Show, MoveTo},
+    execute,
+    terminal::{Clear, ClearType},
+    ExecutableCommand,
+};
 
 use xmind_to_all::{
     json_to_sheet,
@@ -22,6 +30,7 @@ enum Event {
 
 #[tokio::main]
 async fn main() {
+    welcome_message();
     let(tx, mut rx) = mpsc::channel(32);
     let user_config_data = Arc::clone(&user_config::USER_CONFIG);
 
@@ -64,13 +73,66 @@ async fn main() {
                     println!("Unknown command.");
                 }
             }
+            // 重新显示提示符
+            print_prompt();
         }
+    });
+
+    // 启动光标闪烁的协程
+    let blink_handle = tokio::spawn(async {
+        print_prompt_with_blink().await;
     });
 
     // 等待任务完成
     tokio::select! {
         _ = event_handler => {},
         _ = command_handler => {},
+    }
+
+    // 处理完成后，停止光标闪烁
+    blink_handle.abort(); // 停止光标闪烁协程
+    print!("\x1b[?25h"); // 确保光标可见
+    print_prompt(); // 打印提示符
+}
+
+fn welcome_message() {
+    let help_text = r#"
+欢迎使用 Xmind to All 应用程序！
+Xmind to All 是一款将 Xmind 格式的测试用例转换为 XLSX 格式的工具。通过简单的命令行操作，您可以轻松转换测试用例。
+
+命令说明：
+1. process <文件名>：处理指定的 Xmind 文件并转换为 XLSX 格式。
+   - 参数：文件名可以是绝对路径或放置在工作目录下的 input 目录中的文件名。
+   - 示例：process test_case.xmind
+
+2. exit：退出程序。
+   - 输入 `exit` 并按回车键即可退出。
+
+感谢您使用 Xmind to All！如需更多帮助，请联系庄啸森。
+"#;
+
+    println!("{}", help_text);
+}
+
+fn print_prompt() {
+    print!("> "); // 打印提示符
+    std::io::stdout().flush().unwrap(); // 刷新输出缓冲区
+}
+
+async fn print_prompt_with_blink() {
+    let mut is_visible = true;
+    print!("\r> "); // 打印提示符
+    std::io::stdout().flush().unwrap(); // 刷新输出缓冲区
+
+    loop {
+        if is_visible {
+            print!("\x1b[?25h"); // 显示光标
+        } else {
+            print!("\x1b[?25l"); // 隐藏光标
+        }
+        std::io::stdout().flush().unwrap();
+        is_visible = !is_visible;
+        sleep(Duration::from_millis(500)).await; // 使用 Tokio 的异步睡眠
     }
 }
 
